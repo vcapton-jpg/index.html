@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EdRAM — Competitive Intelligence Dashboard 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8C97A;
+  --gold-pale: #F5EDD6;
+  --dark: #0E0E12;
+  --dark-2: #16161C;
+  --dark-3: #1E1E26;
+  --dark-4: #252530;
+  --border: rgba(201,168,76,0.18);
+  --border-light: rgba(255,255,255,0.06);
+  --text: #F0EDE5;
+  --text-muted: #8A8680;
+  --text-dim: #4A4845;
+  --green: #4CAF82;
+  --red: #E05252;
+  --blue: #5B8BDE;
+  --amber: #E8A840;
+  --teal: #3BB8C4;
+  --purple: #9B7FD4;
+  --positive: #4CAF82;
+  --negative: #E05252;
+  --neutral: #E8A840;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--dark);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--dark-2);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo-block { display:flex; align-items:center; gap:14px; }
+.logo-mark {
+  width: 38px; height: 38px;
+  border: 1.5px solid var(--gold);
+  border-radius: 6px;
+  display: flex; align-items:center; justify-content:center;
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; color: var(--gold); font-weight:700;
+}
+.logo-text { font-family: 'Playfair Display', serif; font-size: 18px; color: var(--text); letter-spacing:0.02em; }
+.logo-sub { font-size:11px; color: var(--text-muted); letter-spacing:0.08em; text-transform:uppercase; margin-top:1px; }
+.header-meta { display:flex; align-items:center; gap:24px; }
+.header-tag {
+  font-size: 11px; letter-spacing:0.1em; text-transform:uppercase;
+  color: var(--gold); background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.3);
+  padding: 4px 10px; border-radius:4px;
+}
+.header-date { font-size:12px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+/* ── NAV TABS ── */
+nav {
+  background: var(--dark-2);
+  border-bottom: 1px solid var(--border-light);
+  padding: 0 40px;
+  display: flex; gap: 0;
+}
+.tab {
+  padding: 12px 20px;
+  font-size: 12px; letter-spacing:0.06em; text-transform:uppercase;
+  color: var(--text-muted);
+  cursor:pointer; border:none; background:none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* ── MAIN LAYOUT ── */
+.main { padding: 32px 40px; max-width: 1600px; margin: 0 auto; }
+.section { display:none; }
+.section.active { display:block; }
+
+/* ── KPI STRIP ── */
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.kpi-card {
+  background: var(--dark-2);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 16px 18px;
+  position:relative; overflow:hidden;
+}
+.kpi-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+}
+.kpi-card.gold::before { background: var(--gold); }
+.kpi-card.green::before { background: var(--green); }
+.kpi-card.red::before { background: var(--red); }
+.kpi-card.blue::before { background: var(--blue); }
+.kpi-card.purple::before { background: var(--purple); }
+.kpi-label { font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+.kpi-value { font-size:22px; font-weight:600; color:var(--text); font-family:'DM Mono',monospace; }
+.kpi-sub { font-size:11px; color:var(--text-muted); margin-top:3px; }
+
+/* ── SECTION TITLE ── */
+.section-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size:20px; font-weight:600; color:var(--text);
+}
+.section-title span { color: var(--gold); }
+.section-desc { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.badge {
+  font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+  padding:3px 8px; border-radius:3px;
+  background: rgba(201,168,76,0.12); color:var(--gold);
+  border: 1px solid rgba(201,168,76,0.25);
+}
+
+/* ── MAIN DASHBOARD GRID ── */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.dashboard-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+.card {
+  background: var(--dark-2);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 20px 22px;
+}
+.card.full { grid-column: 1 / -1; }
+.card-title {
+  font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--text-muted); margin-bottom:16px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.card-title .dot {
+  width:6px; height:6px; border-radius:50%;
+  margin-right:7px; display:inline-block;
+}
+
+/* ── COMPETITOR TABLE ── */
+.comp-table {
+  width:100%; border-collapse:collapse; font-size:12px;
+}
+.comp-table th {
+  text-align:left; padding: 7px 10px;
+  font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--text-dim); border-bottom:1px solid var(--border-light);
+  font-weight:500;
+}
+.comp-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  vertical-align:middle;
+}
+.comp-table tr:hover td { background: rgba(255,255,255,0.02); }
+.comp-table tr:last-child td { border-bottom:none; }
+.firm-name { font-weight:500; color:var(--text); font-size:13px; }
+.firm-aum { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-muted); }
+.flag { font-size:14px; margin-right:4px; }
+.markets { display:flex; gap:3px; flex-wrap:wrap; }
+.mkt-pill {
+  font-size:9px; padding:2px 6px; border-radius:3px;
+  background:rgba(255,255,255,0.07); color:var(--text-muted);
+  letter-spacing:0.05em;
+}
+.pos-pill {
+  font-size:10px; padding:3px 8px; border-radius:4px; font-weight:500;
+}
+.pos-bull { background:rgba(76,175,130,0.15); color:var(--green); }
+.pos-bear { background:rgba(224,82,82,0.15); color:var(--red); }
+.pos-neut { background:rgba(232,168,64,0.15); color:var(--amber); }
+.pos-caution { background:rgba(91,139,222,0.15); color:var(--blue); }
+.pos-opp { background:rgba(155,127,212,0.15); color:var(--purple); }
+
+/* ── CONSENSUS BAR ── */
+.consensus-row {
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:10px;
+}
+.consensus-label { font-size:11px; color:var(--text-muted); width:120px; flex-shrink:0; }
+.consensus-bar-wrap { flex:1; background:var(--dark-3); border-radius:3px; height:7px; position:relative; }
+.consensus-bar { height:7px; border-radius:3px; transition: width 0.8s ease; }
+.consensus-val { font-size:11px; font-family:'DM Mono',monospace; color:var(--text-muted); width:48px; text-align:right; flex-shrink:0; }
+.consensus-sent { font-size:10px; padding:2px 7px; border-radius:3px; width:60px; text-align:center; flex-shrink:0; }
+
+/* ── MACRO TABLE ── */
+.macro-grid {
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:10px;
+}
+.macro-cell {
+  background:var(--dark-3);
+  border-radius:6px;
+  padding:12px 14px;
+}
+.macro-cell-label { font-size:10px; color:var(--text-dim); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px; }
+.macro-cell-val { font-size:18px; font-weight:600; font-family:'DM Mono',monospace; }
+.macro-cell-range { font-size:10px; color:var(--text-muted); margin-top:3px; }
+.edram-marker {
+  display:inline-block; font-size:9px;
+  background:rgba(201,168,76,0.2); color:var(--gold);
+  border:1px solid rgba(201,168,76,0.4);
+  padding:1px 5px; border-radius:3px; margin-left:6px; letter-spacing:0.05em;
+}
+
+/* ── HEATMAP ── */
+.heatmap-table { width:100%; border-collapse:collapse; font-size:11px; }
+.heatmap-table th {
+  padding:6px 8px; font-size:9px; letter-spacing:0.07em; text-transform:uppercase;
+  color:var(--text-dim); font-weight:500; text-align:center;
+  border-bottom:1px solid var(--border-light);
+}
+.heatmap-table th:first-child { text-align:left; }
+.heatmap-table td { padding:5px 8px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.02); }
+.heatmap-table td:first-child { text-align:left; color:var(--text-muted); font-size:11px; }
+.hm-cell {
+  width:26px; height:22px; border-radius:4px;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:500;
+}
+.hm-2 { background:rgba(76,175,130,0.7); color:#fff; }
+.hm-1 { background:rgba(76,175,130,0.3); color:var(--green); }
+.hm-0 { background:rgba(232,168,64,0.2); color:var(--amber); }
+.hm-n1 { background:rgba(224,82,82,0.3); color:var(--red); }
+.hm-n2 { background:rgba(224,82,82,0.7); color:#fff; }
+.hm-na { background:rgba(255,255,255,0.04); color:var(--text-dim); }
+
+/* ── LEGEND ── */
+.legend { display:flex; gap:16px; margin-bottom:12px; flex-wrap:wrap; }
+.legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--text-muted); }
+.legend-dot { width:10px; height:10px; border-radius:2px; }
+
+/* ── INSIGHTS ── */
+.insights-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.insight-card {
+  background:var(--dark-2);
+  border:1px solid var(--border-light);
+  border-radius:8px;
+  padding:18px 20px;
+  border-left:3px solid transparent;
+  transition: border-color 0.2s;
+}
+.insight-card:hover { border-left-color: var(--gold); }
+.insight-num { font-size:10px; color:var(--gold); letter-spacing:0.1em; margin-bottom:6px; font-family:'DM Mono',monospace; }
+.insight-title { font-size:14px; font-weight:500; color:var(--text); margin-bottom:8px; }
+.insight-body { font-size:12px; color:var(--text-muted); line-height:1.65; }
+.insight-tags { display:flex; gap:5px; margin-top:10px; flex-wrap:wrap; }
+.insight-tag {
+  font-size:9px; padding:2px 7px; border-radius:3px; letter-spacing:0.05em;
+  background:rgba(255,255,255,0.06); color:var(--text-muted);
+}
+
+/* ── COUNTRY TABS ── */
+.country-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.ctab {
+  padding:7px 14px; border-radius:5px; font-size:12px; cursor:pointer;
+  border:1px solid var(--border-light); background:var(--dark-2);
+  color:var(--text-muted); transition:all 0.2s;
+}
+.ctab.active { background:rgba(201,168,76,0.12); border-color:rgba(201,168,76,0.4); color:var(--gold); }
+.ctab:hover { color:var(--text); }
+.country-panel { display:none; }
+.country-panel.active { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+/* ── SIGNAL BAR ── */
+.signal-item {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.signal-item:last-child { border-bottom:none; }
+.signal-name { flex:1; font-size:12px; color:var(--text-muted); }
+.signal-bars { display:flex; gap:2px; }
+.signal-bar-unit {
+  width:6px; height:16px; border-radius:2px;
+  background:var(--dark-4);
+}
+.signal-bar-unit.filled-bull { background:var(--green); }
+.signal-bar-unit.filled-bear { background:var(--red); }
+.signal-bar-unit.filled-neut { background:var(--amber); }
+.signal-label { font-size:10px; color:var(--text-dim); width:50px; text-align:right; font-family:'DM Mono',monospace; }
+
+/* ── THEMES GRID ── */
+.themes-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.theme-card {
+  background:var(--dark-3); border-radius:6px; padding:14px 16px;
+  border-left:2px solid transparent;
+}
+.theme-card.high { border-left-color:var(--green); }
+.theme-card.med { border-left-color:var(--amber); }
+.theme-card.low { border-left-color:var(--text-dim); }
+.theme-name { font-size:12px; font-weight:500; color:var(--text); margin-bottom:4px; }
+.theme-consensus { font-size:10px; color:var(--text-muted); margin-bottom:8px; }
+.theme-bar-wrap { background:var(--dark-4); border-radius:2px; height:4px; }
+.theme-bar-fill { height:4px; border-radius:2px; }
+
+/* ── DIVERGENCE VIEW ── */
+.divg-item {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px; border-radius:6px;
+  background:var(--dark-3); margin-bottom:8px;
+}
+.divg-label { width:170px; flex-shrink:0; font-size:12px; color:var(--text-muted); }
+.divg-scale {
+  flex:1; position:relative; height:20px;
+  display:flex; align-items:center;
+}
+.divg-track { position:absolute; left:0; right:0; height:2px; background:var(--dark-4); border-radius:1px; }
+.divg-center { position:absolute; left:50%; transform:translateX(-50%); width:1px; height:12px; background:var(--border); }
+.divg-marker {
+  position:absolute; transform:translateX(-50%);
+  width:8px; height:8px; border-radius:50%; top:50%; margin-top:-4px;
+}
+.divg-marker.edram { background:var(--gold); z-index:2; }
+.divg-marker.peer { background:var(--blue); opacity:0.6; z-index:1; }
+.divg-marker.peer2 { background:var(--teal); opacity:0.6; }
+.divg-legend { font-size:10px; color:var(--text-dim); width:50px; text-align:right; flex-shrink:0; }
+
+/* ── CHART WRAPPERS ── */
+.chart-wrap { position:relative; width:100%; height:200px; }
+.chart-wrap-sm { position:relative; width:100%; height:150px; }
+.chart-wrap-lg { position:relative; width:100%; height:240px; }
+
+/* ── FOOTER ── */
+footer {
+  margin-top:48px; padding:24px 40px;
+  border-top:1px solid var(--border-light);
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:11px; color:var(--text-dim);
+}
+.footer-sources { display:flex; gap:12px; flex-wrap:wrap; }
+.src { background:var(--dark-2); padding:3px 8px; border-radius:3px; border:1px solid var(--border-light); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--dark); }
+::-webkit-scrollbar-thumb { background:var(--dark-4); border-radius:3px; }
+
+/* ── DIVIDER ── */
+.divider { height:1px; background:var(--border-light); margin:20px 0; }
+
+/* ── RESPONSIVE TWEAKS ── */
+@media (max-width:1100px) {
+  .kpi-strip { grid-template-columns:repeat(3,1fr); }
+  .macro-grid { grid-template-columns:repeat(2,1fr); }
+  .dashboard-grid.three { grid-template-columns:1fr 1fr; }
+  .insights-grid { grid-template-columns:1fr; }
+  .country-panel.active { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-block">
+    <div class="logo-mark">EdR</div>
+    <div>
+      <div class="logo-text">Edmond de Rothschild AM</div>
+      <div class="logo-sub">Competitive Intelligence Dashboard — 2026 Outlooks</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="header-tag">Phase 1 — Macro Intelligence</span>
+    <span class="header-date">As of March 2026 · 18 peers analysed</span>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <button class="tab active" onclick="showSection('overview')">Overview</button>
+  <button class="tab" onclick="showSection('macro')">Macro Forecasts</button>
+  <button class="tab" onclick="showSection('positioning')">Asset Class Positioning</button>
+  <button class="tab" onclick="showSection('themes')">Investment Themes</button>
+  <button class="tab" onclick="showSection('divergence')">EdRAM vs Peers</button>
+  <button class="tab" onclick="showSection('mapping')">Competitor Mapping</button>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 1 — OVERVIEW
+══════════════════════════════════════════════════════════ -->
+<div class="section active" id="overview">
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi-card gold">
+      <div class="kpi-label">Peers Analysed</div>
+      <div class="kpi-value">18</div>
+      <div class="kpi-sub">€10bn+ AUM, 5 markets</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Consensus on Equities</div>
+      <div class="kpi-value">Bullish</div>
+      <div class="kpi-sub">83% of peers OW equities</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">EdRAM GDP Call</div>
+      <div class="kpi-value">+1.2%</div>
+      <div class="kpi-sub">EZ — above peer median</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">Highest Risk Flag</div>
+      <div class="kpi-value">Geopolitics</div>
+      <div class="kpi-sub">72% cite as primary risk</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">Top Consensus Theme</div>
+      <div class="kpi-value">AI/Tech</div>
+      <div class="kpi-sub">94% of peers overweight</div>
+    </div>
+  </div>
+
+  <!-- ROW 1 -->
+  <div class="dashboard-grid">
+    <!-- Consensus Sentiment -->
+    <div class="card">
+      <div class="card-title">
+        <span><span class="dot" style="background:var(--gold)"></span>Peer Macro Consensus — Key Indicators</span>
+        <span class="badge">18 peers</span>
+      </div>
+
+      <div class="consensus-row">
+        <span class="consensus-label">US GDP 2026</span>
+        <div class="consensus-bar-wrap">
+          <div class="consensus-bar" style="width:62%; background:var(--green)"></div>
+        </div>
+        <span class="consensus-val">+2.1%</span>
+        <span class="consensus-sent pos-bull">Positive</span>
+      </div>
+      <div class="consensus-row">
+        <span class="consensus-label">Eurozone GDP</span>
+        <div class="consensus-bar-wrap">
+          <div class="consensus-bar" style="width:36%; background:var(--amber)"></div>
+        </div>
+        <span class="consensus-val">+1.0%</span>
+        <span class="consensus-sent pos-neut">Cautious</span>
+      </div>
+      <div class="consensus-row">
+        <span class="consensus-label">China GDP</span>
+        <div class="consensus-bar-wrap">
+          <div class="consensus-bar" style="width:55%; background:var(--amber)"></div>
+        </div>
+        <span class="consensus-val">+4.4%</span>
+        <span class="consensus-sent pos-neut">Mixed</span>
+      </div>
+      <div class="consensus-row">
+        <span class="consensus-label">Global Inflation</span>
+        <div class="consensus-bar-wrap">
+          <div class="consensus-bar" style="width:48%; background:var(--blue)"></div>
+        </div>
+        <span class="consensus-val">+2.8%</span>
+        <span class="consensus-sent pos-caution">Easing</span>
+      </div>
+      <div class="consensus-row">
+        <span class="consensus-label">Fed rate (YE)</span>
+        <div class="consensus-bar-wrap">
+          <div class="consensus-bar" style="width:40%; background:var(--blue)"></div>
+        </div>
+        <span class="consensus-val">3.75%</span>
+        <span class="consensus-sent pos-caution">2 cuts</span>
+      </div>
+      <div class="consensus-row">
+        <span class="consensus-label">ECB rate (YE)</span>
+        <div class="consensus-bar-wrap">
+          <div class="consensus-bar" style="width:28%; background:var(--green)"></div>
+        </div>
+        <span class="consensus-val">1.75%</span>
+        <span class="consensus-sent pos-bull">Cutting</span>
+      </div>
+      <div class="consensus-row">
+        <span class="consensus-label">EUR/USD</span>
+        <div class="consensus-bar-wrap">
+          <div class="consensus-bar" style="width:35%; background:var(--text-dim)"></div>
+        </div>
+        <span class="consensus-val">1.06</span>
+        <span class="consensus-sent pos-neut">Range</span>
+      </div>
+      <div class="consensus-row">
+        <span class="consensus-label">EM Growth</span>
+        <div class="consensus-bar-wrap">
+          <div class="consensus-bar" style="width:70%; background:var(--green)"></div>
+        </div>
+        <span class="consensus-val">+4.2%</span>
+        <span class="consensus-sent pos-bull">Positive</span>
+      </div>
+    </div>
+
+    <!-- Asset Class Positioning Heatmap mini -->
+    <div class="card">
+      <div class="card-title">
+        <span><span class="dot" style="background:var(--blue)"></span>Asset Class Positioning — Peer Consensus</span>
+      </div>
+      <div class="legend" style="margin-bottom:14px;">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(76,175,130,0.7)"></div>Strong OW</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(76,175,130,0.3)"></div>OW</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(232,168,64,0.2)"></div>Neutral</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(224,82,82,0.3)"></div>UW</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(224,82,82,0.7)"></div>Strong UW</div>
+      </div>
+      <table class="heatmap-table">
+        <thead>
+          <tr>
+            <th>Asset class</th>
+            <th>EdRAM</th>
+            <th>Amundi</th>
+            <th>Pictet</th>
+            <th>AXA IM</th>
+            <th>DWS</th>
+            <th>Allianz</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Global Equities</td>
+            <td><span class="hm-cell hm-2">++</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-2">++</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-2">++</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+          </tr>
+          <tr>
+            <td>US Equities</td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+          </tr>
+          <tr>
+            <td>Euro Equities</td>
+            <td><span class="hm-cell hm-2">++</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-2">++</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+          </tr>
+          <tr>
+            <td>EM Equities</td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-n1">−</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+          </tr>
+          <tr>
+            <td>IG Credit</td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-2">++</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-2">++</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+          </tr>
+          <tr>
+            <td>HY Credit</td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-n1">−</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-n1">−</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+          </tr>
+          <tr>
+            <td>Govt Bonds</td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+          </tr>
+          <tr>
+            <td>Gold/Commodities</td>
+            <td><span class="hm-cell hm-2">++</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-2">++</span></td>
+            <td><span class="hm-cell hm-1">+</span></td>
+            <td><span class="hm-cell hm-0">~</span></td>
+            <td><span class="hm-cell hm-2">++</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ROW 2 -->
+  <div class="dashboard-grid three">
+    <!-- GDP Bar Chart -->
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--teal)"></span>2026 GDP Forecasts — Peer Range</span></div>
+      <div class="chart-wrap">
+        <canvas id="gdpChart"></canvas>
+      </div>
+    </div>
+    <!-- Rate Expectations -->
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--purple)"></span>Central Bank Rate Expectations (YE 2026)</span></div>
+      <div class="chart-wrap">
+        <canvas id="rateChart"></canvas>
+      </div>
+    </div>
+    <!-- Top Themes -->
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--amber)"></span>Top Investment Themes — Peer Consensus %</span></div>
+      <div class="chart-wrap">
+        <canvas id="themeChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 2 — MACRO FORECASTS
+══════════════════════════════════════════════════════════ -->
+<div class="section" id="macro">
+
+  <div class="section-header">
+    <div>
+      <div class="section-title">Macroeconomic <span>Forecasts 2026</span></div>
+      <div class="section-desc">Peer consensus ranges vs EdRAM house view — all key macro indicators</div>
+    </div>
+    <span class="badge">18 peers · 7 indicators</span>
+  </div>
+
+  <div class="macro-grid" style="margin-bottom:20px;">
+    <div class="macro-cell">
+      <div class="macro-cell-label">US GDP Growth</div>
+      <div class="macro-cell-val" style="color:var(--green)">+2.1% <span class="edram-marker">EdR: +2.3%</span></div>
+      <div class="macro-cell-range">Peer range: +1.6% → +2.6%</div>
+    </div>
+    <div class="macro-cell">
+      <div class="macro-cell-label">Eurozone GDP</div>
+      <div class="macro-cell-val" style="color:var(--amber)">+1.0% <span class="edram-marker">EdR: +1.2%</span></div>
+      <div class="macro-cell-range">Peer range: +0.6% → +1.4%</div>
+    </div>
+    <div class="macro-cell">
+      <div class="macro-cell-label">China GDP</div>
+      <div class="macro-cell-val" style="color:var(--amber)">+4.4% <span class="edram-marker">EdR: +4.5%</span></div>
+      <div class="macro-cell-range">Peer range: +3.8% → +5.0%</div>
+    </div>
+    <div class="macro-cell">
+      <div class="macro-cell-label">Global Inflation</div>
+      <div class="macro-cell-val" style="color:var(--blue)">+2.8% <span class="edram-marker">EdR: +2.6%</span></div>
+      <div class="macro-cell-range">Peer range: +2.2% → +3.4%</div>
+    </div>
+    <div class="macro-cell">
+      <div class="macro-cell-label">Fed Funds Rate (YE)</div>
+      <div class="macro-cell-val" style="color:var(--blue)">3.75% <span class="edram-marker">EdR: 3.50%</span></div>
+      <div class="macro-cell-range">Peer range: 3.25% → 4.25%</div>
+    </div>
+    <div class="macro-cell">
+      <div class="macro-cell-label">ECB Deposit Rate (YE)</div>
+      <div class="macro-cell-val" style="color:var(--green)">1.75% <span class="edram-marker">EdR: 1.50%</span></div>
+      <div class="macro-cell-range">Peer range: 1.25% → 2.25%</div>
+    </div>
+    <div class="macro-cell">
+      <div class="macro-cell-label">EUR/USD (YE target)</div>
+      <div class="macro-cell-val" style="color:var(--text)">1.06 <span class="edram-marker">EdR: 1.08</span></div>
+      <div class="macro-cell-range">Peer range: 0.98 → 1.12</div>
+    </div>
+    <div class="macro-cell">
+      <div class="macro-cell-label">EM Growth (aggregate)</div>
+      <div class="macro-cell-val" style="color:var(--green)">+4.2% <span class="edram-marker">EdR: +4.3%</span></div>
+      <div class="macro-cell-range">Peer range: +3.5% → +4.8%</div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--teal)"></span>GDP Forecasts by Region — All Peers</span></div>
+      <div class="chart-wrap-lg">
+        <canvas id="gdpDetailChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--purple)"></span>Central Bank Rates — 2026 Year-End Distribution</span></div>
+      <div class="chart-wrap-lg">
+        <canvas id="rateDetailChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="card-title"><span><span class="dot" style="background:var(--gold)"></span>Detailed Macro Positions — Peer-by-Peer</span></div>
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Firm</th>
+          <th>US GDP</th>
+          <th>EZ GDP</th>
+          <th>China GDP</th>
+          <th>CPI Global</th>
+          <th>Fed YE</th>
+          <th>ECB YE</th>
+          <th>EUR/USD</th>
+          <th>EM Growth</th>
+          <th>Macro Tone</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:rgba(201,168,76,0.06); border-left:2px solid var(--gold);">
+          <td><span class="firm-name" style="color:var(--gold)">★ EdRAM</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--green)">+2.3%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--amber)">+1.2%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--amber)">+4.5%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--blue)">+2.6%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.08</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--green)">+4.3%</td>
+          <td><span class="pos-pill pos-bull">Constructive</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Amundi</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.5%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.8%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.05</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.2%</td>
+          <td><span class="pos-pill pos-neut">Cautious</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Pictet AM</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.2%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.1%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.3%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.7%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.07</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.4%</td>
+          <td><span class="pos-pill pos-bull">Constructive</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">AXA IM</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.9%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+0.9%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.4%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.9%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">4.00%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">2.00%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.04</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.0%</td>
+          <td><span class="pos-pill pos-neut">Neutral</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">DWS</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.2%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.1%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.2%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.8%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.06</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.2%</td>
+          <td><span class="pos-pill pos-bull">Constructive</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Allianz GI</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.3%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.7%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.05</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.3%</td>
+          <td><span class="pos-pill pos-neut">Neutral</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">BNP Paribas AM</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.8%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+0.8%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.5%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+3.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">4.25%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">2.00%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.03</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+3.9%</td>
+          <td><span class="pos-pill pos-bear">Defensive</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">UBS AM</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.4%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.2%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.6%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.5%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.08</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.5%</td>
+          <td><span class="pos-pill pos-bull">Constructive</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Natixis IM</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.2%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.9%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.06</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.1%</td>
+          <td><span class="pos-pill pos-neut">Neutral</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Lombard Odier</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.1%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.1%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.5%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.7%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.08</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.4%</td>
+          <td><span class="pos-pill pos-bull">Constructive</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Candriam</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.9%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+0.9%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.3%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.8%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.05</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.2%</td>
+          <td><span class="pos-pill pos-neut">Neutral</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Generali Invest.</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.8%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+0.8%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+3.1%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">4.00%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.04</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.0%</td>
+          <td><span class="pos-pill pos-bear">Defensive</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Eurizon</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.9%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.4%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.8%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.05</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.2%</td>
+          <td><span class="pos-pill pos-neut">Neutral</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">DNCA Finance</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.1%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.3%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.7%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.07</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.2%</td>
+          <td><span class="pos-pill pos-bull">Constructive</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Carmignac</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.7%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+0.7%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+3.2%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">4.25%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">2.25%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.02</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+3.8%</td>
+          <td><span class="pos-pill pos-bear">Defensive</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Jupiter AM</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.1%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.4%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.8%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.06</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.3%</td>
+          <td><span class="pos-pill pos-neut">Neutral</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">Schroders</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.0%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.3%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.7%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.75%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.05</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.1%</td>
+          <td><span class="pos-pill pos-neut">Neutral</span></td>
+        </tr>
+        <tr>
+          <td><span class="firm-name">M&G Investments</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.2%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+1.1%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.5%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+2.6%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">3.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.50%</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">1.07</td>
+          <td style="font-family:'DM Mono',monospace; font-size:11px;">+4.4%</td>
+          <td><span class="pos-pill pos-bull">Constructive</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 3 — POSITIONING
+══════════════════════════════════════════════════════════ -->
+<div class="section" id="positioning">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Asset Class <span>Positioning</span></div>
+      <div class="section-desc">Cross-asset allocation signals across all 18 peers — consensus strength</div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--green)"></span>Equities — Conviction Signals</span></div>
+      <div class="signal-item">
+        <span class="signal-name">Global equities (OW)</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span>
+        </div>
+        <span class="signal-label" style="color:var(--green)">83%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Euro equities (OW vs US)</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--green)">61%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">US large cap tech</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--green)">72%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Small & mid cap EU</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">44%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">EM equities</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">39%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Japan equities</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">50%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Value vs Growth</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">Mixed</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--blue)"></span>Fixed Income — Conviction Signals</span></div>
+      <div class="signal-item">
+        <span class="signal-name">Euro IG credit</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span>
+        </div>
+        <span class="signal-label" style="color:var(--green)">89%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Euro govt bonds (long dur.)</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--green)">61%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">High yield Europe</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">33%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">US Treasuries</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">44%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">EM bonds (hard curr.)</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">50%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Duration — long</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--green)">56%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Inflation-linked bonds</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">28%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid three" style="margin-top:16px;">
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--amber)"></span>Commodities & Alternatives</span></div>
+      <div class="signal-item">
+        <span class="signal-name">Gold</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--green)">78%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Broad commodities</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">33%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Infrastructure</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--green)">61%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Private equity</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">44%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">Hedge funds / Liquid alt.</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">39%</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--teal)"></span>FX Positioning</span></div>
+      <div class="signal-item">
+        <span class="signal-name">USD (bearish)</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bear"></span><span class="signal-bar-unit filled-bear"></span><span class="signal-bar-unit filled-bear"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--red)">61% UW</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">EUR (neutral-positive)</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">Mixed</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">JPY (bullish)</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--green)">72%</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">EM FX (selective)</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bull"></span><span class="signal-bar-unit filled-neut"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--amber)">Selective</span>
+      </div>
+      <div class="signal-item">
+        <span class="signal-name">CHF (slight bearish)</span>
+        <div class="signal-bars">
+          <span class="signal-bar-unit filled-bear"></span><span class="signal-bar-unit filled-bear"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span><span class="signal-bar-unit"></span>
+        </div>
+        <span class="signal-label" style="color:var(--red)">39% UW</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span><span class="dot" style="background:var(--red)"></span>Key Downside Risks — Cited Frequency</span></div>
+      <div class="chart-wrap-sm">
+        <canvas id="riskChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 4 — THEMES
+══════════════════════════════════════════════════════════ -->
+<div class="section" id="themes">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Investment <span>Themes 2026</span></div>
+      <div class="section-desc">Consensus strength on key thematic calls across all 18 peers</div>
+    </div>
+  </div>
+
+  <div class="themes-grid" style="margin-bottom:20px;">
+    <div class="theme-card high">
+      <div class="theme-name">AI & Digitalization</div>
+      <div class="theme-consensus">94% of peers — high conviction</div>
+      <div class="theme-bar-wrap"><div class="theme-bar-fill" style="width:94%; background:var(--green)"></div></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Infrastructure capex, semis, data centres. US mega-cap tech & EU industrial automation. EdRAM: aligned.</div>
+    </div>
+    <div class="theme-card high">
+      <div class="theme-name">Energy Transition</div>
+      <div class="theme-consensus">78% of peers — high conviction</div>
+      <div class="theme-bar-wrap"><div class="theme-bar-fill" style="width:78%; background:var(--green)"></div></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Renewables, grid infra, electrification. EU green deal tailwinds. EdRAM: aligned — renewable energy funds.</div>
+    </div>
+    <div class="theme-card high">
+      <div class="theme-name">Healthcare / Biotech</div>
+      <div class="theme-consensus">67% of peers — medium-high conviction</div>
+      <div class="theme-bar-wrap"><div class="theme-bar-fill" style="width:67%; background:var(--amber)"></div></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">AI drug discovery, GLP-1 obesity drugs, ageing demographics. EdRAM: <strong style="color:var(--gold)">above-peer conviction</strong>.</div>
+    </div>
+    <div class="theme-card med">
+      <div class="theme-name">European Defence & Security</div>
+      <div class="theme-consensus">61% of peers — medium conviction</div>
+      <div class="theme-bar-wrap"><div class="theme-bar-fill" style="width:61%; background:var(--amber)"></div></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">NATO 2% target, geopolitical re-arming cycle. EdRAM: underweight vs peers — potential gap.</div>
+    </div>
+    <div class="theme-card med">
+      <div class="theme-name">Infrastructure & Real Assets</div>
+      <div class="theme-consensus">56% of peers — medium conviction</div>
+      <div class="theme-bar-wrap"><div class="theme-bar-fill" style="width:56%; background:var(--amber)"></div></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Long-duration physical assets as rate cycle turns. EdRAM: selective positions, infra bonds.</div>
+    </div>
+    <div class="theme-card med">
+      <div class="theme-name">EM Consumer Recovery</div>
+      <div class="theme-consensus">44% of peers — mixed</div>
+      <div class="theme-bar-wrap"><div class="theme-bar-fill" style="width:44%; background:var(--amber)"></div></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">India, SE Asia structural growth. China consumption recovery debate. EdRAM: selective EM exposure.</div>
+    </div>
+    <div class="theme-card low">
+      <div class="theme-name">China Recovery Bet</div>
+      <div class="theme-consensus">28% of peers — low conviction</div>
+      <div class="theme-bar-wrap"><div class="theme-bar-fill" style="width:28%; background:var(--text-dim)"></div></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Stimulus-driven re-rating. Most peers cautious. EdRAM: <strong style="color:var(--gold)">diverges bullish</strong> on selective China exposure.</div>
+    </div>
+    <div class="theme-card low">
+      <div class="theme-name">Water & Natural Resources</div>
+      <div class="theme-consensus">22% of peers — niche</div>
+      <div class="theme-bar-wrap"><div class="theme-bar-fill" style="width:22%; background:var(--text-dim)"></div></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Water scarcity infrastructure, biodiversity finance. EdRAM: <strong style="color:var(--gold)">unique differentiation</strong> — early mover.</div>
+    </div>
+    <div class="theme-card low">
+      <div class="theme-name">Geopolitical Fragmentation</div>
+      <div class="theme-consensus">72% cite as risk, few position</div>
+      <div class="theme-bar-wrap"><div class="theme-bar-fill" style="width:30%; background:var(--red)"></div></div>
+      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">US-China decoupling, trade wars. Cited as systemic risk. Few peers have explicit positioning vehicles.</div>
+    </div>
+  </div>
+
+  <div class="card full">
+    <div class="card-title"><span><span class="dot" style="background:var(--gold)"></span>Theme Coverage — Peer Comparison Matrix</span></div>
+    <table class="heatmap-table">
+      <thead>
+        <tr>
+          <th>Theme</th>
+          <th>EdRAM</th>
+          <th>Amundi</th>
+          <th>Pictet</th>
+          <th>AXA IM</th>
+          <th>DWS</th>
+          <th>Allianz GI</th>
+          <th>Candriam</th>
+          <th>Lombard</th>
+          <th>BNP PAM</th>
+          <th>UBS AM</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AI / Tech</td>
+          <td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-2">++</span></td>
+        </tr>
+        <tr>
+          <td>Energy transition</td>
+          <td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-1">+</span></td>
+        </tr>
+        <tr>
+          <td>Healthcare</td>
+          <td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-2">++</span></td>
+        </tr>
+        <tr>
+          <td>Defence</td>
+          <td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-1">+</span></td>
+        </tr>
+        <tr>
+          <td>Infrastructure</td>
+          <td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-0">~</span></td>
+        </tr>
+        <tr>
+          <td>Water / Natural resources</td>
+          <td><span class="hm-cell hm-2">++</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-na">—</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-na">—</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-na">—</span></td><td><span class="hm-cell hm-na">—</span></td>
+        </tr>
+        <tr>
+          <td>China recovery</td>
+          <td><span class="hm-cell hm-1">+</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-n1">−</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-n1">−</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-0">~</span></td><td><span class="hm-cell hm-1">+</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 5 — DIVERGENCE
+══════════════════════════════════════════════════════════ -->
+<div class="section" id="divergence">
+  <div class="section-header">
+    <div>
+      <div class="section-title">EdRAM <span>vs Peers</span></div>
+      <div class="section-desc">Where EdRAM aligns, diverges, or stands alone vs the competitive landscape</div>
+    </div>
+  </div>
+
+  <div class="insights-grid">
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 01 · CONSENSUS ALIGNMENT</div>
+      <div class="insight-title">EdRAM aligns with the bullish equity consensus but with stronger Euro conviction</div>
+      <div class="insight-body">83% of peers are overweight global equities. EdRAM shares this stance but shows a distinctly stronger tilt toward European equities vs US, positioning it alongside DWS and Pictet — and ahead of Amundi's more cautious stance on Euro assets. This creates a commercial narrative around a region-specific recovery play.</div>
+      <div class="insight-tags"><span class="insight-tag">Equities</span><span class="insight-tag">Europe</span><span class="insight-tag">Aligned</span></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 02 · KEY DIVERGENCE</div>
+      <div class="insight-title">EdRAM's EUR/USD call is more bullish on the euro than 70% of peers</div>
+      <div class="insight-body">EdRAM targets EUR/USD at 1.08 vs the peer median of 1.05–1.06. Only UBS AM and Lombard Odier share this view. The divergence reflects EdRAM's confidence in ECB easing impact and eurozone stabilisation — a contrarian stance that could be a powerful sales angle in FR, DE, and IT if validated in H1.</div>
+      <div class="insight-tags"><span class="insight-tag">FX</span><span class="insight-tag">Divergence</span><span class="insight-tag">EUR/USD</span></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 03 · UNIQUE POSITIONING</div>
+      <div class="insight-title">Water & biodiversity — EdRAM is an outlier, and that is an opportunity</div>
+      <div class="insight-body">Only Pictet and Lombard Odier have a meaningful water/natural resources allocation in their 2026 outlooks. EdRAM's dedicated Water fund positions it as a first-mover in a theme that <1 in 5 peers are developing. With EU Nature Restoration Law in force, this is underutilised commercial territory across all five markets.</div>
+      <div class="insight-tags"><span class="insight-tag">Thematic</span><span class="insight-tag">Differentiation</span><span class="insight-tag">Water</span></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 04 · BLIND SPOT</div>
+      <div class="insight-title">European Defence is a growing consensus theme EdRAM has limited exposure to</div>
+      <div class="insight-body">61% of peers are actively overweighting European defence and security post-Ukraine and NATO commitment upgrades. DWS, Allianz GI, and AXA IM have dedicated positioning. EdRAM's fund range has limited direct exposure here — a potential product gap in DE and FR where this theme resonates most with institutional clients.</div>
+      <div class="insight-tags"><span class="insight-tag">Defence</span><span class="insight-tag">Gap</span><span class="insight-tag">Product</span></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 05 · RATE VIEW</div>
+      <div class="insight-title">EdRAM's ECB rate forecast is the most dovish in the peer set</div>
+      <div class="insight-body">EdRAM forecasts ECB at 1.50% by YE 2026 — matching only Pictet, Lombard Odier, UBS AM, and M&G. This implies 4-5 cuts vs the peer median of 3 cuts. This dovish stance supports EdRAM's overweight on European fixed income and provides a compelling narrative for duration extension strategies in fixed income funds.</div>
+      <div class="insight-tags"><span class="insight-tag">ECB</span><span class="insight-tag">Duration</span><span class="insight-tag">Fixed Income</span></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 06 · THEME STRENGTH</div>
+      <div class="insight-title">Healthcare conviction is one of EdRAM's strongest differentiators vs broad peer consensus</div>
+      <div class="insight-body">EdRAM's healthcare overweight aligns only with Pictet and UBS AM at highest conviction. The majority of peers (56%) have a moderate or neutral healthcare view, making EdRAM's dedicated healthcare fund a genuine differentiator — particularly in CH and IT where private banking clients seek theme-specific strategies.</div>
+      <div class="insight-tags"><span class="insight-tag">Healthcare</span><span class="insight-tag">Differentiation</span><span class="insight-tag">Strong OW</span></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 07 · CHINA CALL</div>
+      <div class="insight-title">EdRAM's selective China optimism is a minority contrarian view with potential upside</div>
+      <div class="insight-body">Only 28% of peers have a constructive China view. EdRAM's positive stance on selective China exposure puts it alongside UBS AM in a minority contrarian camp. If Chinese stimulus delivers, EdRAM's EM funds stand to outperform dramatically — a key narrative to pre-position with clients in ES and IT before consensus shifts.</div>
+      <div class="insight-tags"><span class="insight-tag">China</span><span class="insight-tag">Contrarian</span><span class="insight-tag">EM</span></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 08 · GOLD</div>
+      <div class="insight-title">Strong gold consensus — EdRAM's multi-asset funds well positioned to capture this theme</div>
+      <div class="insight-body">78% of peers are overweight gold as a geopolitical hedge and dollar-weakness play. EdRAM's multi-asset funds with commodity exposure are well aligned. This is a cross-selling opportunity: clients in any of the five markets asking about geopolitical protection can be directed to multi-asset strategies with explicit gold exposure.</div>
+      <div class="insight-tags"><span class="insight-tag">Gold</span><span class="insight-tag">Multi-asset</span><span class="insight-tag">Consensus</span></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 09 · SMALL CAP</div>
+      <div class="insight-title">EU small & mid cap is underplayed by peers — EdRAM's niche could outperform</div>
+      <div class="insight-body">Only 44% of peers have a constructive view on EU small & mid cap. With ECB rate cuts expected to disproportionately benefit rate-sensitive smaller companies, EdRAM's dedicated European small cap strategies could significantly outperform. This is particularly relevant in FR and DE where small cap domestic champions are widely held by retail investors.</div>
+      <div class="insight-tags"><span class="insight-tag">Small cap</span><span class="insight-tag">Europe</span><span class="insight-tag">ECB cut</span></div>
+    </div>
+    <div class="insight-card">
+      <div class="insight-num">INSIGHT 10 · MACRO RISK</div>
+      <div class="insight-title">Geopolitical risk is universally flagged but poorly monetised — EdRAM needs a narrative</div>
+      <div class="insight-body">72% of peers cite geopolitics as the primary tail risk, yet fewer than 30% have explicit portfolio positioning. This represents a structural gap across the industry. EdRAM's ability to articulate a multi-asset geopolitical hedging framework — combining gold, infrastructure, and selective EM — could differentiate Sales conversations in all five markets.</div>
+      <div class="insight-tags"><span class="insight-tag">Geopolitics</span><span class="insight-tag">Narrative</span><span class="insight-tag">Multi-asset</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SECTION 6 — COMPETITOR MAPPING
+══════════════════════════════════════════════════════════ -->
+<div class="section" id="mapping">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Competitor <span>Mapping</span></div>
+      <div class="section-desc">18 asset managers — AUM, market coverage, and outlook availability</div>
+    </div>
+    <span class="badge">Step 1 — Documented</span>
+  </div>
+
+  <div class="card full">
+    <div class="card-title"><span><span class="dot" style="background:var(--gold)"></span>Competitor Universe — Full Documentation</span></div>
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Firm</th>
+          <th>HQ</th>
+          <th>AUM (approx.)</th>
+          <th>Markets covered</th>
+          <th>Outlook format</th>
+          <th>Outlook accessible</th>
+          <th>Coverage score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:rgba(201,168,76,0.06);">
+          <td style="color:var(--gold); font-family:'DM Mono',monospace; font-size:11px;">★</td>
+          <td><span class="firm-name" style="color:var(--gold)">EdRAM (reference)</span></td>
+          <td>🇫🇷 FR</td>
+          <td class="firm-aum">~€25bn</td>
+          <td><div class="markets"><span class="mkt-pill">FR</span><span class="mkt-pill">DE</span><span class="mkt-pill">CH</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span></div></td>
+          <td>PDF + Web</td>
+          <td><span class="pos-pill pos-bull">Internal</span></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">01</td>
+          <td><span class="firm-name">Amundi</span></td>
+          <td>🇫🇷 FR</td>
+          <td class="firm-aum">~€2,100bn</td>
+          <td><div class="markets"><span class="mkt-pill">FR</span><span class="mkt-pill">DE</span><span class="mkt-pill">CH</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span></div></td>
+          <td>PDF report + Research Hub</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">5/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">02</td>
+          <td><span class="firm-name">Pictet AM</span></td>
+          <td>🇨🇭 CH</td>
+          <td class="firm-aum">~€260bn</td>
+          <td><div class="markets"><span class="mkt-pill">CH</span><span class="mkt-pill">FR</span><span class="mkt-pill">DE</span><span class="mkt-pill">IT</span></div></td>
+          <td>Barometer PDF monthly</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">5/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">03</td>
+          <td><span class="firm-name">AXA Investment Managers</span></td>
+          <td>🇫🇷 FR</td>
+          <td class="firm-aum">~€870bn</td>
+          <td><div class="markets"><span class="mkt-pill">FR</span><span class="mkt-pill">DE</span><span class="mkt-pill">CH</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span></div></td>
+          <td>PDF + Research Portal</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">5/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">04</td>
+          <td><span class="firm-name">DWS Group</span></td>
+          <td>🇩🇪 DE</td>
+          <td class="firm-aum">~€900bn</td>
+          <td><div class="markets"><span class="mkt-pill">DE</span><span class="mkt-pill">CH</span><span class="mkt-pill">IT</span><span class="mkt-pill">FR</span></div></td>
+          <td>CIO View PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">5/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">05</td>
+          <td><span class="firm-name">Allianz Global Investors</span></td>
+          <td>🇩🇪 DE</td>
+          <td class="firm-aum">~€540bn</td>
+          <td><div class="markets"><span class="mkt-pill">DE</span><span class="mkt-pill">IT</span><span class="mkt-pill">FR</span><span class="mkt-pill">ES</span><span class="mkt-pill">CH</span></div></td>
+          <td>Macro Outlook PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">5/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">06</td>
+          <td><span class="firm-name">BNP Paribas Asset Management</span></td>
+          <td>🇫🇷 FR</td>
+          <td class="firm-aum">~€550bn</td>
+          <td><div class="markets"><span class="mkt-pill">FR</span><span class="mkt-pill">DE</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span></div></td>
+          <td>PDF + Podcast</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">07</td>
+          <td><span class="firm-name">UBS Asset Management</span></td>
+          <td>🇨🇭 CH</td>
+          <td class="firm-aum">~€1,100bn</td>
+          <td><div class="markets"><span class="mkt-pill">CH</span><span class="mkt-pill">DE</span><span class="mkt-pill">IT</span><span class="mkt-pill">FR</span></div></td>
+          <td>Year Ahead PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">5/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">08</td>
+          <td><span class="firm-name">Natixis Investment Managers</span></td>
+          <td>🇫🇷 FR</td>
+          <td class="firm-aum">~€1,100bn</td>
+          <td><div class="markets"><span class="mkt-pill">FR</span><span class="mkt-pill">DE</span><span class="mkt-pill">CH</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span></div></td>
+          <td>Outlook Survey + PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">5/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">09</td>
+          <td><span class="firm-name">Lombard Odier Investment Mgrs</span></td>
+          <td>🇨🇭 CH</td>
+          <td class="firm-aum">~€75bn</td>
+          <td><div class="markets"><span class="mkt-pill">CH</span><span class="mkt-pill">FR</span><span class="mkt-pill">IT</span></div></td>
+          <td>CIO Letters + PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">10</td>
+          <td><span class="firm-name">Candriam</span></td>
+          <td>🇧🇪 BE</td>
+          <td class="firm-aum">~€160bn</td>
+          <td><div class="markets"><span class="mkt-pill">FR</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span></div></td>
+          <td>Outlook PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">11</td>
+          <td><span class="firm-name">Generali Investments</span></td>
+          <td>🇮🇹 IT</td>
+          <td class="firm-aum">~€700bn</td>
+          <td><div class="markets"><span class="mkt-pill">IT</span><span class="mkt-pill">FR</span><span class="mkt-pill">DE</span><span class="mkt-pill">ES</span></div></td>
+          <td>Economic Outlook PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">12</td>
+          <td><span class="firm-name">Eurizon Capital</span></td>
+          <td>🇮🇹 IT</td>
+          <td class="firm-aum">~€450bn</td>
+          <td><div class="markets"><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span><span class="mkt-pill">FR</span></div></td>
+          <td>Macro Research Portal</td>
+          <td><span class="pos-pill pos-neut">Partial</span></td>
+          <td style="color:var(--amber); font-family:'DM Mono',monospace;">3/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">13</td>
+          <td><span class="firm-name">DNCA Finance</span></td>
+          <td>🇫🇷 FR</td>
+          <td class="firm-aum">~€27bn</td>
+          <td><div class="markets"><span class="mkt-pill">FR</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span></div></td>
+          <td>Letter to Investors PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">14</td>
+          <td><span class="firm-name">Carmignac</span></td>
+          <td>🇫🇷 FR</td>
+          <td class="firm-aum">~€33bn</td>
+          <td><div class="markets"><span class="mkt-pill">FR</span><span class="mkt-pill">ES</span><span class="mkt-pill">IT</span><span class="mkt-pill">CH</span></div></td>
+          <td>Strategic Note PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">15</td>
+          <td><span class="firm-name">Jupiter Asset Management</span></td>
+          <td>🇬🇧 UK</td>
+          <td class="firm-aum">~€65bn</td>
+          <td><div class="markets"><span class="mkt-pill">DE</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span><span class="mkt-pill">CH</span></div></td>
+          <td>Market Views PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">16</td>
+          <td><span class="firm-name">Schroders</span></td>
+          <td>🇬🇧 UK</td>
+          <td class="firm-aum">~€750bn</td>
+          <td><div class="markets"><span class="mkt-pill">DE</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span><span class="mkt-pill">FR</span></div></td>
+          <td>Investment Talks PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">17</td>
+          <td><span class="firm-name">M&G Investments</span></td>
+          <td>🇬🇧 UK</td>
+          <td class="firm-aum">~€400bn</td>
+          <td><div class="markets"><span class="mkt-pill">DE</span><span class="mkt-pill">IT</span><span class="mkt-pill">ES</span><span class="mkt-pill">FR</span></div></td>
+          <td>Macro Thematic Report</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+        <tr>
+          <td style="font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim);">18</td>
+          <td><span class="firm-name">Oddo BHF AM</span></td>
+          <td>🇫🇷 FR / 🇩🇪 DE</td>
+          <td class="firm-aum">~€60bn</td>
+          <td><div class="markets"><span class="mkt-pill">FR</span><span class="mkt-pill">DE</span><span class="mkt-pill">IT</span></div></td>
+          <td>CIO Perspectives PDF</td>
+          <td><span class="pos-pill pos-bull">✓ Public</span></td>
+          <td style="color:var(--green); font-family:'DM Mono',monospace;">4/5</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Sources consulted for competitive intelligence</div>
+    <div class="footer-sources">
+      <span class="src">Amundi Research Hub</span>
+      <span class="src">Pictet Barometer</span>
+      <span class="src">AXA IM Viewpoint</span>
+      <span class="src">DWS CIO View</span>
+      <span class="src">Allianz GI Outlook</span>
+      <span class="src">BNP PAM</span>
+      <span class="src">UBS Year Ahead</span>
+      <span class="src">Natixis Survey 2026</span>
+      <span class="src">Lombard Odier CIO</span>
+      <span class="src">Candriam Outlook</span>
+      <span class="src">Schroders Investment Talks</span>
+      <span class="src">Bloomberg Terminal</span>
+      <span class="src">EdRAM 2026 House View</span>
+    </div>
+  </div>
+  <div style="text-align:right;">
+    <div>Edmond de Rothschild Asset Management</div>
+    <div style="margin-top:2px; color:var(--text-dim)">Competitive Intelligence — Phase 1 · Albert School Project · March 2026</div>
+  </div>
+</footer>
+
+<!-- CHARTS JS -->
+<script>
+Chart.defaults.color = '#8A8680';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 11;
+
+// GDP Overview Chart
+new Chart(document.getElementById('gdpChart'), {
+  type: 'bar',
+  data: {
+    labels: ['USA', 'Eurozone', 'China', 'UK', 'EM avg'],
+    datasets: [
+      {
+        label: 'Peer min', data: [1.6, 0.6, 3.8, 0.9, 3.5],
+        backgroundColor: 'rgba(91,139,222,0.2)', borderColor: 'rgba(91,139,222,0.5)', borderWidth: 1, stack: 'a'
+      },
+      {
+        label: 'Peer range', data: [1.0, 0.8, 1.2, 0.8, 1.3],
+        backgroundColor: 'rgba(91,139,222,0.4)', borderColor: 'rgba(91,139,222,0.6)', borderWidth: 1, stack: 'a'
+      },
+      {
+        label: 'EdRAM', type: 'line',
+        data: [2.3, 1.2, 4.5, null, 4.3],
+        borderColor: '#C9A84C', backgroundColor: '#C9A84C',
+        pointBackgroundColor: '#C9A84C', pointRadius: 5, pointHoverRadius: 7,
+        borderWidth: 2, fill: false, tension: 0
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { mode: 'index' } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 6,
+           ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// Rate Chart
+new Chart(document.getElementById('rateChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Fed', 'ECB', 'SNB', 'BoE'],
+    datasets: [
+      {
+        label: 'Current (Jan 2026)',
+        data: [4.50, 2.75, 0.75, 4.75],
+        backgroundColor: 'rgba(255,255,255,0.12)', borderColor: 'rgba(255,255,255,0.2)', borderWidth: 1
+      },
+      {
+        label: 'Peer consensus YE',
+        data: [3.75, 1.75, 0.25, 4.00],
+        backgroundColor: 'rgba(91,139,222,0.5)', borderColor: 'rgba(91,139,222,0.8)', borderWidth: 1
+      },
+      {
+        label: 'EdRAM forecast',
+        data: [3.50, 1.50, 0.00, 3.75],
+        backgroundColor: 'rgba(201,168,76,0.6)', borderColor: '#C9A84C', borderWidth: 1
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 5.5,
+           ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// Theme consensus chart
+new Chart(document.getElementById('themeChart'), {
+  type: 'bar',
+  indexAxis: 'y',
+  data: {
+    labels: ['AI / Tech', 'Energy transition', 'Gold / Geopolit.', 'Healthcare', 'Defence', 'Infrastructure', 'Water'],
+    datasets: [{
+      label: '% peers OW',
+      data: [94, 78, 78, 67, 61, 56, 22],
+      backgroundColor: [
+        'rgba(76,175,130,0.7)', 'rgba(76,175,130,0.6)', 'rgba(76,175,130,0.55)',
+        'rgba(232,168,64,0.6)', 'rgba(232,168,64,0.5)', 'rgba(232,168,64,0.45)',
+        'rgba(201,168,76,0.8)'
+      ],
+      borderWidth: 0, borderRadius: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, max: 100, ticks: { callback: v => v + '%' } },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// Risk chart
+new Chart(document.getElementById('riskChart'), {
+  type: 'bar',
+  indexAxis: 'y',
+  data: {
+    labels: ['Geopolitics', 'Inflation resurgence', 'US recession', 'China hard landing', 'Rate reversal', 'Credit stress'],
+    datasets: [{
+      label: '% cited as top risk',
+      data: [72, 56, 44, 39, 33, 28],
+      backgroundColor: [
+        'rgba(224,82,82,0.7)', 'rgba(224,82,82,0.6)', 'rgba(224,82,82,0.5)',
+        'rgba(232,168,64,0.5)', 'rgba(232,168,64,0.4)', 'rgba(232,168,64,0.3)'
+      ],
+      borderWidth: 0, borderRadius: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, max: 100, ticks: { callback: v => v + '%', font: { size: 9 } } },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// GDP Detail chart
+new Chart(document.getElementById('gdpDetailChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Amundi', 'Pictet', 'AXA IM', 'DWS', 'Allianz', 'BNP PAM', 'UBS AM', 'Natixis', 'Lombard', 'EdRAM'],
+    datasets: [
+      { label: 'US GDP', data: [2.0, 2.2, 1.9, 2.2, 2.0, 1.8, 2.4, 2.0, 2.1, 2.3], backgroundColor: 'rgba(91,139,222,0.6)', borderRadius: 2, borderWidth: 0 },
+      { label: 'EZ GDP', data: [1.0, 1.1, 0.9, 1.1, 1.0, 0.8, 1.2, 1.0, 1.1, 1.2], backgroundColor: 'rgba(59,184,196,0.6)', borderRadius: 2, borderWidth: 0 },
+      { label: 'China GDP', data: [4.5, 4.3, 4.4, 4.2, 4.3, 4.5, 4.6, 4.2, 4.5, 4.5], backgroundColor: 'rgba(232,168,64,0.6)', borderRadius: 2, borderWidth: 0 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { font: { size: 9 }, maxRotation: 45 } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 6, ticks: { callback: v => v + '%', font: { size: 10 } } }
+    }
+  }
+});
+
+// Rate detail
+new Chart(document.getElementById('rateDetailChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [
+      {
+        label: 'ECB YE 2026',
+        data: [
+          {x: 1, y: 1.75}, {x: 2, y: 1.50}, {x: 3, y: 2.00}, {x: 4, y: 1.75},
+          {x: 5, y: 1.75}, {x: 6, y: 2.00}, {x: 7, y: 1.50}, {x: 8, y: 1.75},
+          {x: 9, y: 1.50}, {x: 10, y: 1.75}, {x: 11, y: 2.25}
+        ],
+        backgroundColor: 'rgba(59,184,196,0.7)', pointRadius: 7, pointHoverRadius: 9
+      },
+      {
+        label: 'Fed YE 2026',
+        data: [
+          {x: 1, y: 3.75}, {x: 2, y: 3.50}, {x: 3, y: 4.00}, {x: 4, y: 3.75},
+          {x: 5, y: 3.75}, {x: 6, y: 4.25}, {x: 7, y: 3.50}, {x: 8, y: 3.75},
+          {x: 9, y: 3.50}, {x: 10, y: 3.75}, {x: 11, y: 4.25}
+        ],
+        backgroundColor: 'rgba(91,139,222,0.7)', pointRadius: 7, pointHoverRadius: 9
+      },
+      {
+        label: 'EdRAM ECB',
+        data: [{x: 0, y: 1.50}],
+        backgroundColor: '#C9A84C', pointRadius: 11, pointHoverRadius: 13,
+        pointStyle: 'star'
+      },
+      {
+        label: 'EdRAM Fed',
+        data: [{x: 0, y: 3.50}],
+        backgroundColor: '#C9A84C', pointRadius: 11, pointHoverRadius: 13,
+        pointStyle: 'star'
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}%` } }
+    },
+    scales: {
+      x: { display: false, min: -1, max: 12 },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, min: 0, max: 5.5, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+
+// ── TAB LOGIC ──
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
